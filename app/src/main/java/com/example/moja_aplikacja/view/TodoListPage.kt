@@ -32,9 +32,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.aplikacja.R
 import com.example.aplikacja.model.Todo
 import com.example.aplikacja.viewmodel.TodoViewModel
+import com.example.moja_aplikacja.R
 import java.text.SimpleDateFormat
 import java.util.Locale
 
