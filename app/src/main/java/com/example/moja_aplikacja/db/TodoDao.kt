@@ -1,10 +1,10 @@
-package com.example.aplikacja.db
+package com.example.moja_aplikacja.db
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.example.aplikacja.model.Todo
+import com.example.moja_aplikacja.model.Todo
 
 @Dao
 interface TodoDao {

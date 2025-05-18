@@ -1,21 +1,19 @@
-package com.example.aplikacja
+package com.example.moja_aplikacja
 
-import TodoDatabase
-import android.app.Application
-import androidx.room.Room
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.example.moja_aplikacja.db.Converters
+import com.example.moja_aplikacja.db.TodoDao
+import com.example.moja_aplikacja.model.Todo
 
-class MainApplication : Application() {
 
-    companion object {
-        lateinit var todoDatabase: TodoDatabase
+@Database(entities = [Todo::class], version = 1)
+@TypeConverters(Converters::class)
+abstract class TodoDatabase : RoomDatabase(){
+    companion object{
+        const val NAME = "Todo_DB"
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        todoDatabase = Room.databaseBuilder(
-            applicationContext,
-            TodoDatabase::class.java,
-            TodoDatabase.NAME
-        ).build()
-    }
+    abstract fun getTodoDao() : TodoDao
 }

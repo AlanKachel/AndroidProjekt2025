@@ -1,4 +1,4 @@
-package com.example.aplikacja.view
+package com.example.moja_aplikacja.view
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -32,8 +32,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.aplikacja.model.Todo
-import com.example.aplikacja.viewmodel.TodoViewModel
+import com.example.moja_aplikacja.model.Todo
+import com.example.moja_aplikacja.viewmodel.TodoViewModel
 import com.example.moja_aplikacja.R
 import java.text.SimpleDateFormat
 import java.util.Locale

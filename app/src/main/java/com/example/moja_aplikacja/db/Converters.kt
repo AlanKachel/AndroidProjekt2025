@@ -1,4 +1,4 @@
-package com.example.aplikacja.db
+package com.example.moja_aplikacja.db
 
 import androidx.room.TypeConverter
 import java.util.Date

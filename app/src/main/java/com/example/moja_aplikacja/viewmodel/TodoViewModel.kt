@@ -1,12 +1,12 @@
-package com.example.aplikacja.viewmodel
+package com.example.moja_aplikacja.viewmodel
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aplikacja.MainApplication
-import com.example.aplikacja.model.Todo
+import com.example.moja_aplikacja.MainApplication
+import com.example.moja_aplikacja.model.Todo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.Instant

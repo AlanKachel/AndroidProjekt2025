@@ -1,4 +1,4 @@
-package com.example.aplikacja.utils
+package com.example.moja_aplikacja.utils
 
 object Routes {
     val loginPage = "Login_page"
