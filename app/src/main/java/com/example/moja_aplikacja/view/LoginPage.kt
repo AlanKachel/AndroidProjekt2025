@@ -27,12 +27,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.moja_aplikacja.utils.Routes
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import com.example.moja_aplikacja.R
+import androidx.compose.material3.TextFieldDefaults
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,19 +85,19 @@ fun LoginPage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-//        // Hasło
-//        TextField(
-//            value = password.value,
-//            onValueChange = { password.value = it },
-//            label = { Text("Password") },
-//            visualTransformation = PasswordVisualTransformation(),
-//            colors = TextFieldDefaults.textFieldColors(
-//                focusedIndicatorColor = Color(0xFF471AA0),
-//                unfocusedIndicatorColor = Color(0xFF471AA0),
-//                cursorColor = Color(0xFF471AA0)
-//            ),
-//            modifier = Modifier.fillMaxWidth()
-//        )
+        TextField(
+            value = password.value,
+            onValueChange = { password.value = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            colors = TextFieldDefaults.colors(
+                focusedIndicatorColor = Color(0xFF471AA0),
+                unfocusedIndicatorColor = Color(0xFF471AA0),
+                cursorColor = Color(0xFF471AA0)
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+
 
         Spacer(modifier = Modifier.height(8.dp))
 
