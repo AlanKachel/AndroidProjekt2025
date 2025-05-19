@@ -257,7 +257,7 @@ fun RegisterPage(navController: NavController) {
                 Text("Sign Up", color = Color.White, fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(90.dp))
+            Spacer(modifier = Modifier.height(50.dp))
 
             Row {
                 Text(text = "Already have an account ?", color = Color.Gray)
