@@ -21,12 +21,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.moja_aplikacja.R
-import com.example.moja_aplikacja.utils.Routes
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.moja_aplikacja.utils.AuthPreferences
+import com.example.moja_aplikacja.utils.Routes
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -35,10 +36,12 @@ import com.google.firebase.ktx.Firebase
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterPage(navController: NavController) {
+    AuthPreferences.setLoggedIn(LocalContext.current, true)
     val name = remember { mutableStateOf("") }
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val confirmPassword = remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
@@ -68,6 +71,7 @@ fun RegisterPage(navController: NavController) {
                 modifier = Modifier
                     .align(Alignment.Start)
                     .clickable { navController.navigate(Routes.loginPage) }
+
             )
 
             Spacer(modifier = Modifier.height(160.dp))
@@ -252,6 +256,7 @@ fun RegisterPage(navController: NavController) {
                                 if (task.isSuccessful) {
                                     // Sukces: użytkownik dodany
                                     navController.navigate(Routes.todoListPage)
+                                    AuthPreferences.setLoggedIn(context, true)
                                 } else {
                                     // Błąd (np. email już zajęty)
                                     emailError = task.exception?.message

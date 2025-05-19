@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -22,13 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.moja_aplikacja.R
+import com.example.moja_aplikacja.utils.AuthPreferences
 import com.example.moja_aplikacja.utils.Routes
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginPage(navController: NavController) {
     val email = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
@@ -161,7 +167,6 @@ fun LoginPage(navController: NavController) {
 
         Button(
             onClick = {
-                // Walidacja
                 var isValid = true
 
                 if (!email.value.contains("@") || !email.value.contains(".")) {
@@ -175,9 +180,19 @@ fun LoginPage(navController: NavController) {
                 }
 
                 if (isValid) {
-                    navController.navigate(Routes.todoListPage)
+                    Firebase.auth.signInWithEmailAndPassword(email.value, password.value)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                navController.navigate(Routes.todoListPage)
+                                AuthPreferences.setLoggedIn(context, true)
+                            } else {
+                                // Błąd logowania – np. zły email/hasło
+                                passwordError = "Login failed: ${task.exception?.localizedMessage}"
+                            }
+                        }
                 }
-            },
+            }
+            ,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp),

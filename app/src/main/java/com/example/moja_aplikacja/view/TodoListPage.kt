@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -36,6 +37,10 @@ import androidx.navigation.NavController
 import com.example.moja_aplikacja.model.Todo
 import com.example.moja_aplikacja.viewmodel.TodoViewModel
 import com.example.moja_aplikacja.R
+import com.example.moja_aplikacja.utils.AuthPreferences
+import com.example.moja_aplikacja.utils.Routes
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -44,6 +49,24 @@ import java.util.Locale
 @Composable
 fun TodoListPage(navController: NavController, viewModel: TodoViewModel)
 {
+    val context = LocalContext.current
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Button(onClick = {
+            Firebase.auth.signOut()
+            AuthPreferences.setLoggedIn(context, false)
+            navController.navigate(Routes.loginPage) {
+                popUpTo(0) // usuń cały stack
+            }
+        }) {
+            Text("Wyloguj")
+        }
+    }
 
     val todoList by viewModel.todoList.observeAsState()
     var inputText by remember {
