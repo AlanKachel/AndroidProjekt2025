@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
     kotlin("kapt")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -55,6 +56,10 @@ dependencies {
     //implementation(libs.androidx.navigation.compose.android)
     implementation(libs.androidx.navigation.runtime.android)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
     //implementation(libs.androidx.room.common.jvm)
     //implementation(libs.androidx.room.runtime.android)
     testImplementation(libs.junit)

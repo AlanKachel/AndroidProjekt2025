@@ -27,6 +27,9 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.VisualTransformation
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -244,10 +247,19 @@ fun RegisterPage(navController: NavController) {
                     }
 
                     if (isValid) {
-                        // Tu można dodać zapis do bazy lub przejście dalej
-                        navController.navigate(Routes.loginPage)
+                        Firebase.auth.createUserWithEmailAndPassword(email.value, password.value)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    // Sukces: użytkownik dodany
+                                    navController.navigate(Routes.todoListPage)
+                                } else {
+                                    // Błąd (np. email już zajęty)
+                                    emailError = task.exception?.message
+                                }
+                            }
                     }
-                },
+                }
+                ,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
