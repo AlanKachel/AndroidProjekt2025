@@ -15,7 +15,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,42 +24,21 @@ import com.example.moja_aplikacja.model.Todo
 import com.example.moja_aplikacja.utils.AuthPreferences
 import com.example.moja_aplikacja.utils.Routes
 import com.example.moja_aplikacja.viewmodel.TodoViewModel
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TodoListPage(navController: NavController, viewModel: TodoViewModel) {
-    var newText by remember { mutableStateOf("") }
     val context = LocalContext.current
     val todoList by viewModel.todoList.observeAsState()
     var inputText by remember { mutableStateOf("") }
-    var editingTodo by remember { mutableStateOf<Todo?>(null) }
-    val coroutineScope = rememberCoroutineScope()
+    var itemBeingEdited by remember { mutableStateOf<Todo?>(null) }
+    var editText by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(onClick = {
-                FirebaseAuth.getInstance().signOut()
-                AuthPreferences.setLoggedIn(context, false)
-                navController.navigate(Routes.loginPage) {
-                    popUpTo(0)
-                }
-            }) {
-                Text("Wyloguj")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier
@@ -68,70 +46,87 @@ fun TodoListPage(navController: NavController, viewModel: TodoViewModel) {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            Button(onClick = {
+                Firebase.auth.signOut()
+                AuthPreferences.setLoggedIn(context, false)
+                navController.navigate(Routes.loginPage) {
+                    popUpTo(0)
+                }
+            }) {
+                Text("Wyloguj")
+            }
+
             OutlinedTextField(
                 modifier = Modifier.weight(1f),
                 value = inputText,
                 onValueChange = { inputText = it },
-                label = { Text("Wpisz zadanie") }
+                placeholder = { Text("Wpisz zadanie") }
             )
+
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = {
-                viewModel.addTodo(inputText)
-                inputText = ""
-            }) {
+
+            Button(
+                onClick = {
+                    if (inputText.isNotBlank()) {
+                        viewModel.addTodo(inputText)
+                        inputText = ""
+                    }
+                },
+                shape = RoundedCornerShape(50)
+            ) {
                 Text("Add")
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        todoList?.let {
-            LazyColumn(contentPadding = PaddingValues(bottom = 100.dp)) {
+        LazyColumn {
+            todoList?.let {
                 items(it.size) { index ->
                     val item = it[index]
                     TodoItem(
                         item = item,
-                        onDelete = {
-                            viewModel.deleteTodo(item.id)
-                        },
-                        onEditConfirm = { newText ->
-                            viewModel.updateTodo(item.id, newText)
+                        onDelete = { viewModel.deleteTodo(item.id) },
+                        onEdit = {
+                            itemBeingEdited = item
+                            editText = item.title
                         }
                     )
                 }
             }
-        } ?: Text(
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            text = "No items yet",
-            fontSize = 16.sp
-        )
+        }
     }
 
-    editingTodo?.let { todo ->
+    itemBeingEdited?.let { todo ->
         AlertDialog(
-            onDismissRequest = { editingTodo = null },
-            title = { Text("Edit Todo") },
-            text = {
-                var newText by remember { mutableStateOf(TextFieldValue(todo.title)) }
-                OutlinedTextField(
-                    value = newText,
-                    onValueChange = { newText = it },
-                    label = { Text("New text") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+            onDismissRequest = {
+                itemBeingEdited = null
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.updateTodo(editingTodo!!.id, newText) } // ✅ poprawnie
-                ) {
-                    Text("Save")
+                TextButton(onClick = {
+                    viewModel.updateTodo(todo.id, editText)
+                    itemBeingEdited = null
+                }) {
+                    Text("Save", color = Color(0xFF471AA0))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { editingTodo = null }) {
-                    Text("Cancel")
+                TextButton(onClick = {
+                    itemBeingEdited = null
+                }) {
+                    Text("Cancel", color = Color(0xFF471AA0))
                 }
-            }
+            },
+            title = {
+                Text("Edit Task")
+            },
+            text = {
+                OutlinedTextField(
+                    value = editText,
+                    onValueChange = { editText = it },
+                    label = { Text("New text") }
+                )
+            },
+            containerColor = Color(0xFFF4EDF9),
+            shape = RoundedCornerShape(20.dp)
         )
     }
 }
@@ -140,76 +135,41 @@ fun TodoListPage(navController: NavController, viewModel: TodoViewModel) {
 fun TodoItem(
     item: Todo,
     onDelete: () -> Unit,
-    onEditConfirm: (String) -> Unit
+    onEdit: () -> Unit
 ) {
-    var showDialog by remember { mutableStateOf(false) }
-    var editedText by remember { mutableStateOf(item.title) }
-
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = SimpleDateFormat("HH:mm:ss, dd/MM", Locale.ENGLISH).format(item.createdAt),
-                    fontSize = 12.sp,
-                    color = Color.LightGray
-                )
-                Text(
-                    text = item.title,
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-            }
-
-            IconButton(onClick = { showDialog = true }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_edit_24),
-                    contentDescription = "Edit",
-                    tint = Color.White
-                )
-            }
-
-            IconButton(onClick = onDelete) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_delete_24),
-                    contentDescription = "Delete",
-                    tint = Color.White
-                )
-            }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = SimpleDateFormat("HH:mm, dd/MM", Locale.ENGLISH).format(item.createdAt),
+                fontSize = 12.sp,
+                color = Color.LightGray
+            )
+            Text(
+                text = item.title,
+                fontSize = 20.sp,
+                color = Color.White
+            )
         }
-
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                title = { Text("Edit Task") },
-                text = {
-                    OutlinedTextField(
-                        value = editedText,
-                        onValueChange = { editedText = it },
-                        label = { Text("New text") },
-                        singleLine = true
-                    )
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        onEditConfirm(editedText)
-                        showDialog = false
-                    }) {
-                        Text("Save")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
+        IconButton(onClick = onEdit) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_edit_24),
+                contentDescription = "Edit",
+                tint = Color.White
+            )
+        }
+        IconButton(onClick = onDelete) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_delete_24),
+                contentDescription = "Delete",
+                tint = Color.White
             )
         }
     }
