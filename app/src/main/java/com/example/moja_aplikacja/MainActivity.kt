@@ -32,9 +32,11 @@ class MainActivity : ComponentActivity() {
                 composable(Routes.registerPage) {
                     RegisterPage(navController)
                 }
-                //composable(Routes.todoListPage) {
-                    //TodoListPage(navController)
-                //}
+                composable(Routes.todoListPage) {
+                    TodoListPage(navController, todoViewModel)
+                }
+
+
             }
         }
     }
