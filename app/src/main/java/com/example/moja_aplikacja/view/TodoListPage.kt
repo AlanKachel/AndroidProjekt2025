@@ -1,8 +1,11 @@
 package com.example.moja_aplikacja.view
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -137,13 +140,21 @@ fun TodoItem(
     onDelete: () -> Unit,
     onEdit: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.primary)
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickable {
+                val encodedAddress = Uri.encode(item.title)
+                val uri = Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedAddress")
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+                context.startActivity(intent)
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
