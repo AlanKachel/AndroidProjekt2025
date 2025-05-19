@@ -2,6 +2,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +33,7 @@ fun RegisterPage(navController: NavController) {
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // 👉 Dekoracyjny obrazek w prawym górnym rogu
+        // Dekoracyjny obrazek w prawym górnym rogu
         Image(
             painter = painterResource(id = R.drawable.circle),
             contentDescription = null,
@@ -67,10 +72,18 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(35.dp))
 
+            // Full name
             OutlinedTextField(
                 value = name.value,
                 onValueChange = { name.value = it },
                 label = { Text("Full Name") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = Color(0xFF471AA0)
+                    )
+                },
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF471AA0),
@@ -86,10 +99,18 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // Email
             OutlinedTextField(
                 value = email.value,
                 onValueChange = { email.value = it },
                 label = { Text("Email") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        tint = Color(0xFF471AA0)
+                    )
+                },
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF471AA0),
@@ -105,10 +126,25 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // Password
             OutlinedTextField(
                 value = password.value,
                 onValueChange = { password.value = it },
                 label = { Text("Password") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = Color(0xFF471AA0)
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Show password",
+                        tint = Color(0xFF471AA0)
+                    )
+                },
                 visualTransformation = PasswordVisualTransformation(),
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -125,10 +161,25 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
+            // Confirm Password
             OutlinedTextField(
                 value = confirmPassword.value,
                 onValueChange = { confirmPassword.value = it },
                 label = { Text("Confirm Password") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = Color(0xFF471AA0)
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Visibility,
+                        contentDescription = "Show password",
+                        tint = Color(0xFF471AA0)
+                    )
+                },
                 visualTransformation = PasswordVisualTransformation(),
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -145,6 +196,7 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(90.dp))
 
+            // Sign Up button
             Button(
                 onClick = { /* obsługa rejestracji */ },
                 modifier = Modifier
@@ -158,6 +210,7 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(90.dp))
 
+            // Already have an account
             Row {
                 Text(text = "Already have an account ?", color = Color.Gray)
                 Spacer(modifier = Modifier.width(4.dp))
