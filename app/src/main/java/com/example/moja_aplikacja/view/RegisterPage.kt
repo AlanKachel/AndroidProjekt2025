@@ -22,6 +22,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.moja_aplikacja.R
 import com.example.moja_aplikacja.utils.Routes
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.VisualTransformation
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,9 +37,14 @@ fun RegisterPage(navController: NavController) {
     val password = remember { mutableStateOf("") }
     val confirmPassword = remember { mutableStateOf("") }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
 
-        // Dekoracyjny obrazek w prawym górnym rogu
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.circle),
             contentDescription = null,
@@ -48,7 +59,6 @@ fun RegisterPage(navController: NavController) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Back
             Text(
                 text = "← Back",
                 color = Color(0xFF471AA0),
@@ -59,7 +69,6 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(160.dp))
 
-            // Tytuł
             Text(
                 text = "Sign Up",
                 fontSize = 32.sp,
@@ -72,7 +81,6 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(35.dp))
 
-            // Full name
             OutlinedTextField(
                 value = name.value,
                 onValueChange = { name.value = it },
@@ -99,10 +107,12 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Email
             OutlinedTextField(
                 value = email.value,
-                onValueChange = { email.value = it },
+                onValueChange = {
+                    email.value = it
+                    emailError = null
+                },
                 label = { Text("Email") },
                 leadingIcon = {
                     Icon(
@@ -111,6 +121,7 @@ fun RegisterPage(navController: NavController) {
                         tint = Color(0xFF471AA0)
                     )
                 },
+                isError = emailError != null,
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF471AA0),
@@ -123,13 +134,18 @@ fun RegisterPage(navController: NavController) {
                     .fillMaxWidth()
                     .height(60.dp)
             )
+            if (emailError != null) {
+                Text(emailError!!, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+            }
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Password
             OutlinedTextField(
                 value = password.value,
-                onValueChange = { password.value = it },
+                onValueChange = {
+                    password.value = it
+                    passwordError = null
+                },
                 label = { Text("Password") },
                 leadingIcon = {
                     Icon(
@@ -140,12 +156,14 @@ fun RegisterPage(navController: NavController) {
                 },
                 trailingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Visibility,
-                        contentDescription = "Show password",
-                        tint = Color(0xFF471AA0)
+                        imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = "Toggle password",
+                        tint = Color(0xFF471AA0),
+                        modifier = Modifier.clickable { passwordVisible = !passwordVisible }
                     )
                 },
-                visualTransformation = PasswordVisualTransformation(),
+                isError = passwordError != null,
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF471AA0),
@@ -158,13 +176,18 @@ fun RegisterPage(navController: NavController) {
                     .fillMaxWidth()
                     .height(60.dp)
             )
+            if (passwordError != null) {
+                Text(passwordError!!, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+            }
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Confirm Password
             OutlinedTextField(
                 value = confirmPassword.value,
-                onValueChange = { confirmPassword.value = it },
+                onValueChange = {
+                    confirmPassword.value = it
+                    confirmPasswordError = null
+                },
                 label = { Text("Confirm Password") },
                 leadingIcon = {
                     Icon(
@@ -175,12 +198,14 @@ fun RegisterPage(navController: NavController) {
                 },
                 trailingIcon = {
                     Icon(
-                        imageVector = Icons.Default.Visibility,
-                        contentDescription = "Show password",
-                        tint = Color(0xFF471AA0)
+                        imageVector = if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = "Toggle password",
+                        tint = Color(0xFF471AA0),
+                        modifier = Modifier.clickable { confirmPasswordVisible = !confirmPasswordVisible }
                     )
                 },
-                visualTransformation = PasswordVisualTransformation(),
+                isError = confirmPasswordError != null,
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF471AA0),
@@ -193,12 +218,36 @@ fun RegisterPage(navController: NavController) {
                     .fillMaxWidth()
                     .height(60.dp)
             )
+            if (confirmPasswordError != null) {
+                Text(confirmPasswordError!!, color = Color.Red, fontSize = 12.sp, modifier = Modifier.align(Alignment.Start))
+            }
 
             Spacer(modifier = Modifier.height(90.dp))
 
-            // Sign Up button
             Button(
-                onClick = { /* obsługa rejestracji */ },
+                onClick = {
+                    var isValid = true
+
+                    if (!email.value.contains("@") || !email.value.contains(".")) {
+                        emailError = "Invalid email address"
+                        isValid = false
+                    }
+
+                    if (password.value.length < 6) {
+                        passwordError = "Password must be at least 6 characters"
+                        isValid = false
+                    }
+
+                    if (confirmPassword.value != password.value) {
+                        confirmPasswordError = "Passwords do not match"
+                        isValid = false
+                    }
+
+                    if (isValid) {
+                        // Tu można dodać zapis do bazy lub przejście dalej
+                        navController.navigate(Routes.loginPage)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
@@ -210,7 +259,6 @@ fun RegisterPage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(90.dp))
 
-            // Already have an account
             Row {
                 Text(text = "Already have an account ?", color = Color.Gray)
                 Spacer(modifier = Modifier.width(4.dp))
