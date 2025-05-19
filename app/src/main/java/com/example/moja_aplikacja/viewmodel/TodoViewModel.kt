@@ -14,14 +14,16 @@ import java.util.Date
 
 class TodoViewModel : ViewModel() {
 
-    val todoDao = MainApplication.todoDatabase.getTodoDao()
+    private val todoDao = MainApplication.todoDatabase.getTodoDao()
 
     val todoList: LiveData<List<Todo>> = todoDao.getAllTodo()
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun addTodo(title: String) {
+        if (title.isBlank()) return // zapobiegamy pustym wpisom
         viewModelScope.launch(Dispatchers.IO) {
-            todoDao.addTodo(Todo(title = title, createdAt = Date.from(Instant.now())))
+            val todo = Todo(title = title, createdAt = Date.from(Instant.now()))
+            todoDao.addTodo(todo)
         }
     }
 
@@ -30,4 +32,13 @@ class TodoViewModel : ViewModel() {
             todoDao.deleteTodo(id)
         }
     }
+
+    fun updateTodo(id: Int, newText: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val existing = todoDao.getTodoById(id) ?: return@launch
+            val updated = existing.copy(title = newText)
+            todoDao.updateTodo(updated)
+        }
+    }
+
 }

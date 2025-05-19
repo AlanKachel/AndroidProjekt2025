@@ -3,81 +3,64 @@ package com.example.moja_aplikacja.view
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.moja_aplikacja.model.Todo
-import com.example.moja_aplikacja.viewmodel.TodoViewModel
 import com.example.moja_aplikacja.R
+import com.example.moja_aplikacja.model.Todo
 import com.example.moja_aplikacja.utils.AuthPreferences
 import com.example.moja_aplikacja.utils.Routes
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+import com.example.moja_aplikacja.viewmodel.TodoViewModel
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Locale
-
+import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TodoListPage(navController: NavController, viewModel: TodoViewModel)
-{
+fun TodoListPage(navController: NavController, viewModel: TodoViewModel) {
+    var newText by remember { mutableStateOf("") }
     val context = LocalContext.current
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.End
-    ) {
-        Button(onClick = {
-            Firebase.auth.signOut()
-            AuthPreferences.setLoggedIn(context, false)
-            navController.navigate(Routes.loginPage) {
-                popUpTo(0) // usuń cały stack
-            }
-        }) {
-            Text("Wyloguj")
-        }
-    }
-
     val todoList by viewModel.todoList.observeAsState()
-    var inputText by remember {
-        mutableStateOf("")
-    }
+    var inputText by remember { mutableStateOf("") }
+    var editingTodo by remember { mutableStateOf<Todo?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .padding(8.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(onClick = {
+                FirebaseAuth.getInstance().signOut()
+                AuthPreferences.setLoggedIn(context, false)
+                navController.navigate(Routes.loginPage) {
+                    popUpTo(0)
+                }
+            }) {
+                Text("Wyloguj")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Row(
             modifier = Modifier
@@ -86,72 +69,147 @@ fun TodoListPage(navController: NavController, viewModel: TodoViewModel)
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             OutlinedTextField(
-                modifier= Modifier.weight(1f),
+                modifier = Modifier.weight(1f),
                 value = inputText,
-                onValueChange = {
-                    inputText = it
-                })
+                onValueChange = { inputText = it },
+                label = { Text("Wpisz zadanie") }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = {
                 viewModel.addTodo(inputText)
                 inputText = ""
             }) {
-                Text(text = "Add")
+                Text("Add")
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
         todoList?.let {
-            LazyColumn(
-                content = {
-                    itemsIndexed(it){index: Int, item: Todo ->
-                        TodoItem(item = item, onDelete = {
+            LazyColumn(contentPadding = PaddingValues(bottom = 100.dp)) {
+                items(it.size) { index ->
+                    val item = it[index]
+                    TodoItem(
+                        item = item,
+                        onDelete = {
                             viewModel.deleteTodo(item.id)
-                        })
-                    }
+                        },
+                        onEditConfirm = { newText ->
+                            viewModel.updateTodo(item.id, newText)
+                        }
+                    )
                 }
-            )
-        }?: Text(
+            }
+        } ?: Text(
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
             text = "No items yet",
             fontSize = 16.sp
         )
-
-
     }
 
+    editingTodo?.let { todo ->
+        AlertDialog(
+            onDismissRequest = { editingTodo = null },
+            title = { Text("Edit Todo") },
+            text = {
+                var newText by remember { mutableStateOf(TextFieldValue(todo.title)) }
+                OutlinedTextField(
+                    value = newText,
+                    onValueChange = { newText = it },
+                    label = { Text("New text") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.updateTodo(editingTodo!!.id, newText) } // ✅ poprawnie
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingTodo = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun TodoItem(item : Todo, onDelete : ()-> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+fun TodoItem(
+    item: Todo,
+    onDelete: () -> Unit,
+    onEditConfirm: (String) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var editedText by remember { mutableStateOf(item.title) }
 
-    ) {
-        Column(
-            modifier = Modifier.weight(1f)
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.primary)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = SimpleDateFormat("HH:mm:aa, dd/mm", Locale.ENGLISH).format(item.createdAt),
-                fontSize = 12.sp,
-                color = Color.LightGray
-            )
-            Text(
-                text = item.title,
-                fontSize = 20.sp,
-                color = Color.White
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = SimpleDateFormat("HH:mm:ss, dd/MM", Locale.ENGLISH).format(item.createdAt),
+                    fontSize = 12.sp,
+                    color = Color.LightGray
+                )
+                Text(
+                    text = item.title,
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+            }
+
+            IconButton(onClick = { showDialog = true }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_edit_24),
+                    contentDescription = "Edit",
+                    tint = Color.White
+                )
+            }
+
+            IconButton(onClick = onDelete) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_delete_24),
+                    contentDescription = "Delete",
+                    tint = Color.White
+                )
+            }
         }
-        IconButton(onClick = onDelete) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_delete_24),
-                contentDescription = "Delete",
-                tint = Color.White
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Edit Task") },
+                text = {
+                    OutlinedTextField(
+                        value = editedText,
+                        onValueChange = { editedText = it },
+                        label = { Text("New text") },
+                        singleLine = true
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        onEditConfirm(editedText)
+                        showDialog = false
+                    }) {
+                        Text("Save")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
             )
         }
     }
