@@ -20,7 +20,7 @@ class TodoViewModel : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun addTodo(title: String) {
-        if (title.isBlank()) return // zapobiegamy pustym wpisom
+        if (title.isBlank()) return
         viewModelScope.launch(Dispatchers.IO) {
             val todo = Todo(title = title, createdAt = Date.from(Instant.now()))
             todoDao.addTodo(todo)
